@@ -21,7 +21,6 @@ namespace DAL.Repositories
         public async Task<TEntity> CreateAsync(TEntity createdEntity)
         {
             await _context.Set<TEntity>().AddAsync(createdEntity);
-            await _context.SaveChangesAsync();
             return createdEntity;
         }
 
@@ -63,8 +62,7 @@ namespace DAL.Repositories
             if (entity == null)
                 return null;
 
-            _context.Set<TEntity>().Update(updatedEntity);
-            await _context.SaveChangesAsync();
+            _context.Entry(entity).CurrentValues.SetValues(updatedEntity);
             return updatedEntity;
         }
     }

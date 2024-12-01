@@ -10,26 +10,36 @@ namespace UI.Controllers
     [ApiController]
     public class MenuItemController : ControllerBase
     {
-        private readonly IMenuItemRepository _menuItemRepo;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public MenuItemController(IMenuItemRepository menuItemRepo)
+        public MenuItemController(IUnitOfWork unitOfWork)
         {
-            _menuItemRepo = menuItemRepo;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpPost]
         [Route("create")]
         public async Task<IActionResult> CreateAsync([FromBody] MenuItem menuItem)
         {
-            var createdMenuItem = await _menuItemRepo.CreateAsync(menuItem);
-            return Ok(createdMenuItem);
+            await _unitOfWork.BeginAsync();
+            try
+            {
+                var createdMenuItem = await _unitOfWork.MenuItemRepository.CreateAsync(menuItem);
+                await _unitOfWork.CommitAsync();
+                return Ok(createdMenuItem);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]
         [Route("get/all")]
         public async Task<IActionResult> GetAllAsync()
         {
-            var menuItems = await _menuItemRepo.GetAllAsync();
+            var menuItems = await _unitOfWork.MenuItemRepository.GetAllAsync();
             return Ok(menuItems);
         }
 
@@ -37,8 +47,8 @@ namespace UI.Controllers
         [Route("get/{id:int}")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var menuItem = await _menuItemRepo.GetByIdAsync(id);
-            if (menuItem == null) 
+            var menuItem = await _unitOfWork.MenuItemRepository.GetByIdAsync(id);
+            if (menuItem == null)
                 return NotFound($"MenuItem with id {id} not found");
 
             return Ok(menuItem);
@@ -48,30 +58,40 @@ namespace UI.Controllers
         [Route("update/{id:int}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] MenuItem menuItem)
         {
-            var updatedMenuItem = await _menuItemRepo.UpdateAsync(id, menuItem);
-            if (updatedMenuItem == null)
-                return NotFound($"MenuItem with id {id} not found");
+            await _unitOfWork.BeginAsync();
+            try
+            {
+                var updatedMenuItem = _unitOfWork.MenuItemRepository.UpdateAsync(id, menuItem);
+                if (updatedMenuItem == null)
+                    return NotFound($"MenuItem with id {id} not found");
 
-            return Ok(updatedMenuItem);
+                await _unitOfWork.CommitAsync();
+                return Ok(updatedMenuItem);
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackAsync();
+                return BadRequest(ex.Message);
+            }     
         }
 
         [HttpDelete]
         [Route("delete/all")]
         public async Task<IActionResult> DeleteAllAsync()
         {
-            var deletedMenuItems = await _menuItemRepo.DeleteAllAsync();
-            return Ok(deletedMenuItems);
+            var menuItems = await _unitOfWork.MenuItemRepository.DeleteAllAsync();
+            return Ok(menuItems);
         }
 
         [HttpDelete]
         [Route("delete/{id:int}")]
         public async Task<IActionResult> DeleteByIdAsync([FromRoute] int id)
         {
-            var deletedMenuItem = await _menuItemRepo.DeleteByIdAsync(id);
-            if (deletedMenuItem == null) 
+            var menuItem = await _unitOfWork.MenuItemRepository.DeleteByIdAsync(id);
+            if (menuItem == null) 
                 return NotFound($"MenuItem with id {id} not found");
 
-            return Ok(deletedMenuItem);
+            return Ok(menuItem);
         }
     }
 }
