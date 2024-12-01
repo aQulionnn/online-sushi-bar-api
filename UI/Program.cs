@@ -1,3 +1,4 @@
+using Application.Features.MenuItem.Commands;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
@@ -21,6 +22,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddMediatR(configuration =>
+{
+    var assemblies = typeof(CreateMenuItemCommandHandler).Assembly;
+    configuration.RegisterServicesFromAssemblies(assemblies);
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>

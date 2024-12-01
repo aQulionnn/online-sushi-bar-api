@@ -1,11 +1,6 @@
 ﻿using DAL.Data;
 using DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
@@ -38,6 +33,7 @@ namespace DAL.Repositories
             if (entity == null)
                 return null;
 
+            _context.Set<TEntity>().Remove(entity);
             await _context.SaveChangesAsync();
             return entity;
         }

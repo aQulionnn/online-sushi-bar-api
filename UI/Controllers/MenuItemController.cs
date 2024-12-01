@@ -1,10 +1,8 @@
-﻿using BLL.Dtos.MenuItem;
-using BLL.Interfaces;
-using DAL.Entities;
-using DAL.Interfaces;
+﻿using Application.Features.MenuItem.Commands;
+using Application.Features.MenuItem.Queries;
+using BLL.Dtos.MenuItem;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace UI.Controllers
 {
@@ -12,20 +10,22 @@ namespace UI.Controllers
     [ApiController]
     public class MenuItemController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMenuItemService _menuItemService;
+        private readonly ISender _sender;
 
-        public MenuItemController(IUnitOfWork unitOfWork, IMenuItemService menuItemService)
+        public MenuItemController(ISender sender)
         {
-            _unitOfWork = unitOfWork;
-            _menuItemService = menuItemService;
+            _sender = sender;
         }
 
         [HttpPost]
         [Route("create")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
-            var menuItem = await _menuItemService.CreateAsync(createMenuItemDto);
+            if (!ModelState.IsValid) 
+                return BadRequest(ModelState);
+
+            var command = new CreateMenuItemCommand(createMenuItemDto);
+            var menuItem = await _sender.Send(command);
             return Ok(menuItem);
         }
 
@@ -33,7 +33,8 @@ namespace UI.Controllers
         [Route("get/all")]
         public async Task<IActionResult> GetAllAsync()
         {
-            var menuItems = await _menuItemService.GetAllAsync();
+            var query = new GetAllMenuItemQuery();
+            var menuItems = await _sender.Send(query);
             return Ok(menuItems);
         }
 
@@ -41,7 +42,8 @@ namespace UI.Controllers
         [Route("get/{id:int}")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var menuItem = await _menuItemService.GetByIdAsync(id);
+            var query = new GetMenuItemByIdQuery(id);
+            var menuItem = await _sender.Send(query);
             if (menuItem == null)
                 return NotFound($"MenuItem with id {id} not found");
 
@@ -52,7 +54,11 @@ namespace UI.Controllers
         [Route("update/{id:int}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] UpdateMenuItemDto updateMenuItemDto)
         {
-            var menuItem = await _menuItemService.UpdateAsync(id, updateMenuItemDto);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var command = new UpdateMenuItemCommand(id, updateMenuItemDto);
+            var menuItem = await _sender.Send(command);
             return Ok(menuItem);
         }
 
@@ -60,7 +66,8 @@ namespace UI.Controllers
         [Route("delete/all")]
         public async Task<IActionResult> DeleteAllAsync()
         {
-            var menuItems = await _menuItemService.DeleteAllAsync();
+            var command = new DeleteAllMenuItemCommand();
+            var menuItems = await _sender.Send(command);
             return Ok(menuItems);
         }
 
@@ -68,7 +75,8 @@ namespace UI.Controllers
         [Route("delete/{id:int}")]
         public async Task<IActionResult> DeleteByIdAsync([FromRoute] int id)
         {
-            var menuItem = await _menuItemService.DeleteByIdAsync(id);
+            var command = new DeleteMenuItemByIdCommand(id);
+            var menuItem = await _sender.Send(command);
             if (menuItem == null) 
                 return NotFound($"MenuItem with id {id} not found");
 
