@@ -1,4 +1,6 @@
 using Application.Features.MenuItem.Commands;
+using Application.Interfaces;
+using Application.Services;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
@@ -15,6 +17,7 @@ builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
+builder.Services.AddScoped<IRedisService, RedisService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -26,6 +29,12 @@ builder.Services.AddMediatR(configuration =>
 {
     var assemblies = typeof(CreateMenuItemCommandHandler).Assembly;
     configuration.RegisterServicesFromAssemblies(assemblies);
+});
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "online-sushi-bar-api";
 });
 
 builder.Services.AddEndpointsApiExplorer();
