@@ -12,7 +12,7 @@ namespace Application.Services
             _cache = cache;
         }
 
-        public async Task DeleteDataAsync<T>(string key)
+        public async Task DeleteDataAsync(string key)
         {
             await _cache.RemoveAsync(key);
         }
