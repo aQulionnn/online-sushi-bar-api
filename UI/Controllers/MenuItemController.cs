@@ -4,6 +4,7 @@ using BLL.Dtos.MenuItem;
 using DAL.Parameters;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace UI.Controllers
 {
@@ -32,6 +33,7 @@ namespace UI.Controllers
 
         [HttpGet]
         [Route("get/all")]
+        [EnableRateLimiting("GetRequestLimiter")]
         public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParameters pagination)
         {
             var query = new GetAllMenuItemQuery(pagination);
@@ -41,6 +43,7 @@ namespace UI.Controllers
 
         [HttpGet]
         [Route("get/{id:int}")]
+        [EnableRateLimiting("GetRequestLimiter")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
             var query = new GetMenuItemByIdQuery(id);
