@@ -34,7 +34,7 @@ builder.Services.AddMediatR(configuration =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "online-sushi-bar-api";
+    options.InstanceName = "online-sushi-bar-api:";
 });
 
 builder.Services.AddEndpointsApiExplorer();

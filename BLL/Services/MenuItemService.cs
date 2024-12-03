@@ -3,6 +3,7 @@ using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
 using DAL.Entities;
 using DAL.Interfaces;
+using DAL.Parameters;
 
 namespace BLL.Services
 {
@@ -46,9 +47,9 @@ namespace BLL.Services
             return deletedMenuItem;
         }
 
-        public async Task<IEnumerable<GetMenuItemDto>> GetAllAsync()
+        public async Task<IEnumerable<GetMenuItemDto>> GetAllAsync(PaginationParameters pagination)
         {
-            var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllAsync());
+            var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllAsync(pagination));
             return menuItems;
         }
 

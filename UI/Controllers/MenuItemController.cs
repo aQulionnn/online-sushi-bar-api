@@ -1,6 +1,7 @@
 ﻿using Application.Features.MenuItem.Commands;
 using Application.Features.MenuItem.Queries;
 using BLL.Dtos.MenuItem;
+using DAL.Parameters;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,9 +32,9 @@ namespace UI.Controllers
 
         [HttpGet]
         [Route("get/all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParameters pagination)
         {
-            var query = new GetAllMenuItemQuery();
+            var query = new GetAllMenuItemQuery(pagination);
             var menuItems = await _sender.Send(query);
             return Ok(menuItems);
         }

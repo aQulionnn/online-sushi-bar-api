@@ -1,5 +1,6 @@
 ﻿using DAL.Data;
 using DAL.Interfaces;
+using DAL.Parameters;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositories
@@ -38,9 +39,10 @@ namespace DAL.Repositories
             return entity;
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        public async Task<IEnumerable<TEntity>> GetAllAsync(PaginationParameters pagination)
         {
-            return await _context.Set<TEntity>().ToListAsync();
+            var entities = _context.Set<TEntity>().AsQueryable();
+            return await entities.Skip((pagination.Page - 1) * pagination.PageSize).Take(pagination.PageSize).ToListAsync();
         }
 
         public async Task<TEntity> GetByIdAsync(int id)
