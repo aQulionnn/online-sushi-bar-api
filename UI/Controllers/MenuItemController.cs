@@ -21,6 +21,7 @@ namespace UI.Controllers
 
         [HttpPost]
         [Route("create")]
+        [EnableRateLimiting("PostRequestLimiter")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
             if (!ModelState.IsValid) 
@@ -56,6 +57,7 @@ namespace UI.Controllers
 
         [HttpPut]
         [Route("update/{id:int}")]
+        [EnableRateLimiting("PutRequestLimiter")]
         public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] UpdateMenuItemDto updateMenuItemDto)
         {
             if (!ModelState.IsValid)
@@ -68,6 +70,7 @@ namespace UI.Controllers
 
         [HttpDelete]
         [Route("delete/all")]
+        [EnableRateLimiting("DeleteRequestLimiter")]
         public async Task<IActionResult> DeleteAllAsync()
         {
             var command = new DeleteAllMenuItemCommand();
@@ -77,6 +80,7 @@ namespace UI.Controllers
 
         [HttpDelete]
         [Route("delete/{id:int}")]
+        [EnableRateLimiting("DeleteRequestLimiter")]
         public async Task<IActionResult> DeleteByIdAsync([FromRoute] int id)
         {
             var command = new DeleteMenuItemByIdCommand(id);
