@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 
 namespace UI.Middlewares
 {

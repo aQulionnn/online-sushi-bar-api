@@ -5,6 +5,7 @@ using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
 using DAL.Interfaces;
+using DAL.Parameters;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -38,7 +39,22 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "online-sushi-bar-api:";
 });
 
+builder.Services.Configure<CloudStorageParameters>(builder.Configuration.GetSection("CloudStorageSettings"));
+
 builder.Services.AddRateLimiterExtention();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .WithOrigins("https://localhost:7274")
+                .SetIsOriginAllowed(origin => true);
+        });
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
@@ -53,6 +69,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 
