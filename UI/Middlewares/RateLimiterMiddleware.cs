@@ -1,4 +1,5 @@
-﻿using System.Threading.RateLimiting;
+﻿using System.Text.Json;
+using System.Threading.RateLimiting;
 
 namespace UI.Middlewares
 {
@@ -9,6 +10,12 @@ namespace UI.Middlewares
             services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    context.Lease.TryGetMetadata("RETRY_AFTER", out var retryAfter);
+                    TimeSpan retryAfterTime = TimeSpan.Parse(retryAfter.ToString());
+                    await context.HttpContext.Response.WriteAsync($"Retry again after {retryAfterTime.TotalSeconds} seconds", cancellationToken);
+                };
 
                 options.AddPolicy("PostRequestLimiter", httpContext =>
                     RateLimitPartition.GetFixedWindowLimiter(partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
