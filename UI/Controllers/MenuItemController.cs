@@ -5,6 +5,8 @@ using DAL.Parameters;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System;
+using System.Threading.Tasks;
 
 namespace UI.Controllers
 {
@@ -85,7 +87,7 @@ namespace UI.Controllers
         {
             var command = new DeleteMenuItemByIdCommand(id);
             var menuItem = await _sender.Send(command);
-            if (menuItem == null) 
+            if (menuItem == null)
                 return NotFound($"MenuItem with id {id} not found");
 
             return Ok(menuItem);

@@ -50,9 +50,9 @@ builder.Services.AddCors(options =>
         {
             policy.AllowAnyOrigin()
                 .AllowAnyHeader()
-                .AllowAnyMethod()
-                .WithOrigins("https://localhost:7274")
-                .SetIsOriginAllowed(origin => true);
+                .AllowAnyMethod();
+                //.WithOrigins("https://localhost:7274")
+                //.SetIsOriginAllowed(origin => true);
         });
 });
 

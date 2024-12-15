@@ -69,6 +69,8 @@ namespace UI.Controllers
             var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
 
             await _redisService.SetDataAsync($"image:{publicId}", imageBytes);
+            Response.Headers["Cache-Control"] = "public, max-age=3060";
+            Response.Headers["ETag"] = $"\"{publicId}\"";
 
             return File(imageBytes, "image/jpeg");
         }
