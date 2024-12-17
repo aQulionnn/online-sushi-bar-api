@@ -5,8 +5,7 @@ using DAL.Parameters;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System;
-using System.Threading.Tasks;
+using Polly.Registry;
 
 namespace UI.Controllers
 {
@@ -15,10 +14,12 @@ namespace UI.Controllers
     public class MenuItemController : ControllerBase
     {
         private readonly ISender _sender;
+        private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
 
-        public MenuItemController(ISender sender)
+        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider)
         {
             _sender = sender;
+            _resiliencePipelineProvider = resiliencePipelineProvider;
         }
 
         [HttpPost]
@@ -49,8 +50,10 @@ namespace UI.Controllers
         [EnableRateLimiting("GetRequestLimiter")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
+            var pipeline = _resiliencePipelineProvider.GetPipeline<GetMenuItemDto?>("menu-items-fallback");
+
             var query = new GetMenuItemByIdQuery(id);
-            var menuItem = await _sender.Send(query);
+            var menuItem = await pipeline.ExecuteAsync(async token => await _sender.Send(query));
             if (menuItem == null)
                 return NotFound($"MenuItem with id {id} not found");
 

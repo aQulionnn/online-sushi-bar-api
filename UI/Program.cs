@@ -1,6 +1,7 @@
 using Application.Features.MenuItem.Commands;
 using Application.Interfaces;
 using Application.Services;
+using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
@@ -9,6 +10,8 @@ using DAL.Parameters;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Fallback;
 using UI.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +46,16 @@ builder.Services.Configure<CloudStorageParameters>(builder.Configuration.GetSect
 
 builder.Services.AddRateLimiterExtention();
 
+builder.Services.AddResiliencePipeline<string, GetMenuItemDto>("menu-items-fallback",
+    pipelineBuilder =>
+    {
+        pipelineBuilder.AddFallback(new FallbackStrategyOptions<GetMenuItemDto>
+        {
+            FallbackAction = _ => Outcome.FromResultAsValueTask<GetMenuItemDto>(new GetMenuItemDto()),
+            
+        });
+    });
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -50,9 +63,9 @@ builder.Services.AddCors(options =>
         {
             policy.AllowAnyOrigin()
                 .AllowAnyHeader()
-                .AllowAnyMethod();
-                //.WithOrigins("https://localhost:7274")
-                //.SetIsOriginAllowed(origin => true);
+                .AllowAnyMethod()
+                .WithOrigins("https://localhost:7274")
+                .SetIsOriginAllowed(origin => true);
         });
 });
 
@@ -65,9 +78,11 @@ builder.Services.AddSwaggerGen(option =>
 var app = builder.Build();
 
 
-app.UseSwagger();
-app.UseSwaggerUI();
-
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors();
 
