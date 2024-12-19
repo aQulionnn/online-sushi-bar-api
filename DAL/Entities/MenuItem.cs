@@ -1,5 +1,4 @@
 ﻿using DAL.Enums;
-using System.ComponentModel.DataAnnotations;
 
 namespace DAL.Entities
 {
