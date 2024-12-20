@@ -1,0 +1,16 @@
+services:
+  ui:
+    container_name: online-sushi-bar-api
+    image: ${DOCKER_REGISTRY-}ui
+    build:
+      context: .
+      dockerfile: UI/Dockerfile
+  
+  seq:
+    image: datalust/seq:latest
+    container_name: online-sushi-bar-api.seq
+    environment:
+    - ACCEPT_EULA=Y
+    ports:
+    - 5341:5341
+    - 8081:80
