@@ -1,3 +1,4 @@
+using Application.Features.Behaviors;
 using Application.Features.MenuItem.Commands;
 using Application.Interfaces;
 using Application.Services;
@@ -37,6 +38,7 @@ builder.Services.AddMediatR(configuration =>
 {
     var assemblies = typeof(CreateMenuItemCommandHandler).Assembly;
     configuration.RegisterServicesFromAssemblies(assemblies);
+    configuration.AddOpenBehavior(typeof(RequestLoggingPipelineBehavior<,>));
 });
 
 builder.Services.AddStackExchangeRedisCache(options =>
