@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: UI/Dockerfile
+    ports:
+    - 7274:7274 
   
   seq:
     image: datalust/seq:latest

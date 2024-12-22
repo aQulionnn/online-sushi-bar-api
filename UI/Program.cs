@@ -57,7 +57,6 @@ builder.Services.AddResiliencePipeline<string, GetMenuItemDto>("menu-items-fallb
         pipelineBuilder.AddFallback(new FallbackStrategyOptions<GetMenuItemDto>
         {
             FallbackAction = _ => Outcome.FromResultAsValueTask<GetMenuItemDto>(new GetMenuItemDto()),
-            
         });
     });
 

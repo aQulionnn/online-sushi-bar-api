@@ -10,7 +10,7 @@ namespace BLL.Mapper
         {
             CreateMap<CreateMenuItemDto, MenuItem>();
             CreateMap<UpdateMenuItemDto, MenuItem>();
-            CreateMap<MenuItem, GetMenuItemDto>();
+            CreateMap<MenuItem, GetMenuItemDto>().ForMember(dest => dest.Category, src => src.MapFrom(x => x.Category.ToString()));
         }
     }
 }
