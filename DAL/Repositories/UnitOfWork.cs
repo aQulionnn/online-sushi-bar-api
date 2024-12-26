@@ -1,44 +1,41 @@
 ﻿using DAL.Data;
 using DAL.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly AppDbContext _context;
+        private readonly AppWriteDbContext _writeContext;
+        private readonly AppReadDbContext _readContext;
         private IMenuItemRepository _menuItemRepo;
 
-        public UnitOfWork(AppDbContext context)
+        public UnitOfWork(AppWriteDbContext writeContext, AppReadDbContext readContext)
         {
-            _context = context;
+            _writeContext = writeContext;
+            _readContext = readContext;
         }
 
-        public IMenuItemRepository MenuItemRepository { get { return _menuItemRepo = new MenuItemRepository(_context); } }
+        public IMenuItemRepository MenuItemRepository { get { return _menuItemRepo = new MenuItemRepository(_writeContext, _readContext); } }
 
         public async Task BeginAsync()
         {
-            await _context.BeginTransaction();
+            await _writeContext.BeginTransaction();
         }
 
         public async Task CommitAsync()
         {
-            await _context.SaveChangesAsync();
-            await _context.CommitTransaction();
+            await _writeContext.SaveChangesAsync();
+            await _writeContext.CommitTransaction();
         }
 
         public void Dispose()
         {
-            _context.Dispose();
+            _writeContext.Dispose();
         }
 
         public async Task RollbackAsync()
         {
-            await _context.RollbackTransaction();
+            await _writeContext.RollbackTransaction();
         }
     }
 }

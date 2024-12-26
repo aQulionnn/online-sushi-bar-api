@@ -1,21 +1,18 @@
 ﻿using DAL.Data;
 using DAL.Entities;
 using DAL.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
     public class MenuItemRepository : BaseRepository<MenuItem>, IMenuItemRepository
     {
-        private readonly AppDbContext _context;
+        private readonly AppWriteDbContext _writeContext;
+        private readonly AppReadDbContext _readContext;
 
-        public MenuItemRepository(AppDbContext context) : base(context) 
+        public MenuItemRepository(AppWriteDbContext writeContext, AppReadDbContext readContext) : base(writeContext, readContext)
         {
-            _context = context;
+            _writeContext = writeContext;
+            _readContext = readContext;
         }
     }
 }

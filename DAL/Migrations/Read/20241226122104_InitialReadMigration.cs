@@ -3,10 +3,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace DAL.Migrations
+namespace DAL.Migrations.Read
 {
     /// <inheritdoc />
-    public partial class AddMenuItemTable : Migration
+    public partial class InitialReadMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
