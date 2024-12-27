@@ -16,13 +16,15 @@ namespace UI.Controllers
     {
         private readonly ISender _sender;
         private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
-        private readonly IValidator<CreateMenuItemDto> _validator;
+        private readonly IValidator<CreateMenuItemDto> _createValidator;
+        private readonly IValidator<UpdateMenuItemDto> _updateValidator;
 
-        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> validator)
+        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> createValidator, IValidator<UpdateMenuItemDto> updateValidator)
         {
             _sender = sender;
             _resiliencePipelineProvider = resiliencePipelineProvider;
-            _validator = validator;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
         }
 
         [HttpPost]
@@ -30,7 +32,7 @@ namespace UI.Controllers
         [EnableRateLimiting("PostRequestLimiter")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
-            var validation = await _validator.ValidateAsync(createMenuItemDto);    
+            var validation = await _createValidator.ValidateAsync(createMenuItemDto);    
             if (!validation.IsValid)
             {
                 var problemDetaisl = new HttpValidationProblemDetails(validation.ToDictionary());
@@ -72,8 +74,12 @@ namespace UI.Controllers
         [EnableRateLimiting("PutRequestLimiter")]
         public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] UpdateMenuItemDto updateMenuItemDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var validation = await _updateValidator.ValidateAsync(updateMenuItemDto);
+            if (!validation.IsValid)
+            {
+                var problemDetails = new HttpValidationProblemDetails(validation.ToDictionary());
+                return BadRequest(problemDetails);
+            }
 
             var command = new UpdateMenuItemCommand(id, updateMenuItemDto);
             var menuItem = await _sender.Send(command);
