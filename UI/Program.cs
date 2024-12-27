@@ -2,6 +2,7 @@ using Application.Features.Behaviors;
 using Application.Features.MenuItem.Commands;
 using Application.Interfaces;
 using Application.Services;
+using Application.Validators.MenuItem;
 using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
 using BLL.Services;
@@ -9,6 +10,7 @@ using DAL.Data;
 using DAL.Interfaces;
 using DAL.Parameters;
 using DAL.Repositories;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Polly;
@@ -64,6 +66,9 @@ builder.Services.AddResiliencePipeline<string, GetMenuItemDto>("menu-items-fallb
             FallbackAction = _ => Outcome.FromResultAsValueTask<GetMenuItemDto>(new GetMenuItemDto()),
         });
     });
+
+builder.Services.AddValidatorsFromAssembly(typeof(CreateMenuItemDtoValidator).Assembly, includeInternalTypes: true);
+
 
 builder.Services.AddCors(options =>
 {

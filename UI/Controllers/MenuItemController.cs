@@ -2,6 +2,7 @@
 using Application.Features.MenuItem.Queries;
 using BLL.Dtos.MenuItem;
 using DAL.Parameters;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -15,11 +16,13 @@ namespace UI.Controllers
     {
         private readonly ISender _sender;
         private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
+        private readonly IValidator<CreateMenuItemDto> _validator;
 
-        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider)
+        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> validator)
         {
             _sender = sender;
             _resiliencePipelineProvider = resiliencePipelineProvider;
+            _validator = validator;
         }
 
         [HttpPost]
@@ -27,8 +30,12 @@ namespace UI.Controllers
         [EnableRateLimiting("PostRequestLimiter")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
-            if (!ModelState.IsValid) 
-                return BadRequest(ModelState);
+            var validation = await _validator.ValidateAsync(createMenuItemDto);    
+            if (!validation.IsValid)
+            {
+                var problemDetaisl = new HttpValidationProblemDetails(validation.ToDictionary());
+                return BadRequest(problemDetaisl);
+            }
 
             var command = new CreateMenuItemCommand(createMenuItemDto);
             var menuItem = await _sender.Send(command);
