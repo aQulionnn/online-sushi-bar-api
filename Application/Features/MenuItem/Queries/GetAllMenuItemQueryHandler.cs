@@ -25,7 +25,7 @@ namespace Application.Features.MenuItem.Queries
                 return cachedMenuItems;
 
             var menuItems = await _menuItemService.GetAllAsync(request.Pagination);
-            await _redisService.SetDataAsync("menuItems", menuItems);
+            await _redisService.SetDataAsync($"menuItems:page:{request.Pagination.Page}:pageSize:{request.Pagination.PageSize}", menuItems);
             return menuItems;
         }
     }
