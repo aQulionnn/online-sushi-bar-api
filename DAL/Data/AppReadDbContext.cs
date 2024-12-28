@@ -11,5 +11,6 @@ namespace DAL.Data
         }
 
         public DbSet<MenuItem> MenuItems { get; set; }
+        public DbSet<WebhookEvent> WebhookEvents { get; set; }
     }
 }

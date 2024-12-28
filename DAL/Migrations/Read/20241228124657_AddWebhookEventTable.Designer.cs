@@ -3,17 +3,20 @@ using System;
 using DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace DAL.Migrations.Write
+namespace DAL.Migrations.Read
 {
-    [DbContext(typeof(AppWriteDbContext))]
-    partial class AppWriteDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AppReadDbContext))]
+    [Migration("20241228124657_AddWebhookEventTable")]
+    partial class AddWebhookEventTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

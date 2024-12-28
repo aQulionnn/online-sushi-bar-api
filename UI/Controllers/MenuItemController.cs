@@ -1,5 +1,6 @@
 ﻿using Application.Features.MenuItem.Commands;
 using Application.Features.MenuItem.Queries;
+using Application.Interfaces;
 using BLL.Dtos.MenuItem;
 using DAL.Parameters;
 using FluentValidation;
@@ -18,13 +19,15 @@ namespace UI.Controllers
         private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
         private readonly IValidator<CreateMenuItemDto> _createValidator;
         private readonly IValidator<UpdateMenuItemDto> _updateValidator;
+        private readonly IWebhookEventDispatcher _webhookEventDispatcher;
 
-        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> createValidator, IValidator<UpdateMenuItemDto> updateValidator)
+        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> createValidator, IValidator<UpdateMenuItemDto> updateValidator, IWebhookEventDispatcher webhookEventDispatcher)
         {
             _sender = sender;
             _resiliencePipelineProvider = resiliencePipelineProvider;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _webhookEventDispatcher = webhookEventDispatcher;
         }
 
         [HttpPost]
@@ -41,6 +44,9 @@ namespace UI.Controllers
 
             var command = new CreateMenuItemCommand(createMenuItemDto);
             var menuItem = await _sender.Send(command);
+
+            await _webhookEventDispatcher.DispatchAsync("MenuItem.created", menuItem);
+
             return Ok(menuItem);
         }
 

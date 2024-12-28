@@ -24,11 +24,15 @@ builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configu
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<IWebhookEventRepository, WebhookEventRepository>();
 builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddScoped<IWebhookEventService, WebhookEventService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IRedisService, RedisService>();
+
+builder.Services.AddHttpClient<IWebhookEventDispatcher, WebhookEventDispatcher>();
 
 builder.Services.AddDbContext<AppWriteDbContext>(options =>
 {
