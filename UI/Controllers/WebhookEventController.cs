@@ -1,6 +1,8 @@
 ﻿using BLL.Dtos.WebhookEvent;
 using BLL.Interfaces;
+using DAL.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Polly.Registry;
 
 namespace UI.Controllers
 {
@@ -9,10 +11,12 @@ namespace UI.Controllers
     public class WebhookEventController : ControllerBase
     {
         private readonly IWebhookEventService _webhookEventService;
+        private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
 
-        public WebhookEventController(IWebhookEventService webhookEventService)
-        { 
+        public WebhookEventController(IWebhookEventService webhookEventService, ResiliencePipelineProvider<string> resiliencePipelineProvider)
+        {
             _webhookEventService = webhookEventService;
+            _resiliencePipelineProvider = resiliencePipelineProvider;
         }
 
         [HttpPost]
@@ -27,7 +31,9 @@ namespace UI.Controllers
         [Route("{eventType}")]
         public async Task<IActionResult> GetByEventTypeAsync([FromRoute] string eventType)
         {
-            var webhookEvents = await _webhookEventService.GetByEventType(eventType);
+            var pipeline = _resiliencePipelineProvider.GetPipeline<IEnumerable<WebhookEvent>>("webhook-events-fallback");
+
+            var webhookEvents = await pipeline.ExecuteAsync(async token => await _webhookEventService.GetByEventType(eventType));
             return Ok(webhookEvents);
         }
     }

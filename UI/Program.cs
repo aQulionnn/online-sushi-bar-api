@@ -7,6 +7,7 @@ using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
+using DAL.Entities;
 using DAL.Interfaces;
 using DAL.Parameters;
 using DAL.Repositories;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Fallback;
+using Polly.Retry;
 using Serilog;
 using UI.Middlewares;
 
@@ -68,6 +70,14 @@ builder.Services.AddResiliencePipeline<string, GetMenuItemDto>("menu-items-fallb
         pipelineBuilder.AddFallback(new FallbackStrategyOptions<GetMenuItemDto>
         {
             FallbackAction = _ => Outcome.FromResultAsValueTask<GetMenuItemDto>(new GetMenuItemDto()),
+        });
+    });
+builder.Services.AddResiliencePipeline<string, WebhookEvent>("webhook-events-fallback",
+    pipelineBuilder =>
+    {
+        pipelineBuilder.AddRetry(new RetryStrategyOptions<WebhookEvent>
+        {
+            MaxRetryAttempts = 3
         });
     });
 
