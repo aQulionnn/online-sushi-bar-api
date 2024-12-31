@@ -1,6 +1,8 @@
-﻿using BLL.Dtos.WebhookEvent;
-using BLL.Interfaces;
+﻿using Application.Features.WebhookEvents.Commands;
+using Application.Features.WebhookEvents.Queries;
+using BLL.Dtos.WebhookEvent;
 using DAL.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Polly.Registry;
 
@@ -10,20 +12,22 @@ namespace UI.Controllers
     [ApiController]
     public class WebhookEventController : ControllerBase
     {
-        private readonly IWebhookEventService _webhookEventService;
+        private readonly ISender _sender;
         private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
 
-        public WebhookEventController(IWebhookEventService webhookEventService, ResiliencePipelineProvider<string> resiliencePipelineProvider)
-        {
-            _webhookEventService = webhookEventService;
+        public WebhookEventController(ResiliencePipelineProvider<string> resiliencePipelineProvider, ISender sender)
+        { 
             _resiliencePipelineProvider = resiliencePipelineProvider;
+            _sender = sender;
         }
 
         [HttpPost]
         [Route("create")]
         public async Task<IActionResult> Create([FromBody] CreateWebhookEventDto createWebhookEventDto)
         {
-            var createdWebhookEvent = await _webhookEventService.CreateAsync(createWebhookEventDto);
+            var command = new CreateWebhookEventCommand(createWebhookEventDto);
+            var createdWebhookEvent = await _sender.Send(command);
+
             return Ok(createdWebhookEvent);
         }
 
@@ -31,9 +35,11 @@ namespace UI.Controllers
         [Route("{eventType}")]
         public async Task<IActionResult> GetByEventTypeAsync([FromRoute] string eventType)
         {
-            var pipeline = _resiliencePipelineProvider.GetPipeline<IEnumerable<WebhookEvent>>("webhook-events-fallback");
+            var query = new GetWebhookEventsByEventTypeQuery(eventType);
 
-            var webhookEvents = await pipeline.ExecuteAsync(async token => await _webhookEventService.GetByEventType(eventType));
+            var pipeline = _resiliencePipelineProvider.GetPipeline<IEnumerable<WebhookEvent>>("webhook-events-fallback");
+            var webhookEvents = await pipeline.ExecuteAsync(async token => await _sender.Send(query));
+            
             return Ok(webhookEvents);
         }
     }

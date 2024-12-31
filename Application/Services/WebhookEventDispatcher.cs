@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using BLL.Interfaces;
+using Serilog;
 using System.Net.Http.Json;
 
 namespace Application.Services
@@ -24,12 +25,13 @@ namespace Application.Services
                 var request = new
                 {
                     Id = Guid.NewGuid(),
-                    eventType = webhookEvent.EventType,
+                    webhookEvent.EventType,
                     WebhookEventId = webhookEvent.Id,
                     TimeStamp = webhookEvent.CreatedOn,
                     Data = payload
                 };
 
+                Log.Information("Dispatching webhook event: {@Request}", request);
                 await _httpClient.PostAsJsonAsync(webhookEvent.WebhookUrl, request);
             }
         }
