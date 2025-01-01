@@ -2,6 +2,7 @@
 using Application.Features.MenuItem.Queries;
 using Application.Interfaces;
 using BLL.Dtos.MenuItem;
+using DAL.Entities;
 using DAL.Parameters;
 using DAL.SharedKernels;
 using FluentValidation;
@@ -33,11 +34,11 @@ namespace UI.Controllers
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
             var command = new CreateMenuItemCommand(createMenuItemDto);
-            var menuItem = await _sender.Send(command);
+            var result = await _sender.Send(command);
 
-            await _webhookEventDispatcher.DispatchAsync("MenuItem.created", menuItem);
+            await _webhookEventDispatcher.DispatchAsync("MenuItem.created", result);
 
-            return menuItem.IsSuccess ? Ok(menuItem) : StatusCode((int)menuItem.Error.StatusCode, menuItem);
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpGet]
@@ -46,8 +47,9 @@ namespace UI.Controllers
         public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParameters pagination)
         {
             var query = new GetAllMenuItemQuery(pagination);
-            var menuItems = await _sender.Send(query);
-            return Ok(menuItems);
+            var result = await _sender.Send(query);
+
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result); ;
         }
 
         [HttpGet]
@@ -80,8 +82,9 @@ namespace UI.Controllers
         public async Task<IActionResult> DeleteAllAsync()
         {
             var command = new DeleteAllMenuItemCommand();
-            var menuItems = await _sender.Send(command);
-            return Ok(menuItems);
+            var result = await _sender.Send(command);
+
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpDelete]
@@ -90,11 +93,9 @@ namespace UI.Controllers
         public async Task<IActionResult> DeleteByIdAsync([FromRoute] int id)
         {
             var command = new DeleteMenuItemByIdCommand(id);
-            var menuItem = await _sender.Send(command);
-            if (menuItem == null)
-                return NotFound($"MenuItem with id {id} not found");
+            var result = await _sender.Send(command);
 
-            return Ok(menuItem);
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
     }
 }
