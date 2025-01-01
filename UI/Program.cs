@@ -11,6 +11,7 @@ using DAL.Entities;
 using DAL.Interfaces;
 using DAL.Parameters;
 using DAL.Repositories;
+using DAL.SharedKernels;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -64,12 +65,12 @@ builder.Services.Configure<CloudStorageParameters>(builder.Configuration.GetSect
 
 builder.Services.AddRateLimiterExtention();
 
-builder.Services.AddResiliencePipeline<string, GetMenuItemDto>("menu-items-fallback",
+builder.Services.AddResiliencePipeline<string, Result<GetMenuItemDto>>("menu-items-fallback",
     pipelineBuilder =>
     {
-        pipelineBuilder.AddFallback(new FallbackStrategyOptions<GetMenuItemDto>
+        pipelineBuilder.AddFallback(new FallbackStrategyOptions<Result<GetMenuItemDto>>
         {
-            FallbackAction = _ => Outcome.FromResultAsValueTask<GetMenuItemDto>(new GetMenuItemDto()),
+            FallbackAction = _ => Outcome.FromResultAsValueTask<Result<GetMenuItemDto>>(Result<GetMenuItemDto>.Success(new GetMenuItemDto())),
         });
     });
 builder.Services.AddResiliencePipeline<string, WebhookEvent>("webhook-events-fallback",

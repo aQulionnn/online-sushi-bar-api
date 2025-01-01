@@ -3,6 +3,7 @@ using Application.Features.MenuItem.Queries;
 using Application.Interfaces;
 using BLL.Dtos.MenuItem;
 using DAL.Parameters;
+using DAL.SharedKernels;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +18,12 @@ namespace UI.Controllers
     {
         private readonly ISender _sender;
         private readonly ResiliencePipelineProvider<string> _resiliencePipelineProvider;
-        private readonly IValidator<CreateMenuItemDto> _createValidator;
-        private readonly IValidator<UpdateMenuItemDto> _updateValidator;
         private readonly IWebhookEventDispatcher _webhookEventDispatcher;
 
-        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IValidator<CreateMenuItemDto> createValidator, IValidator<UpdateMenuItemDto> updateValidator, IWebhookEventDispatcher webhookEventDispatcher)
+        public MenuItemController(ISender sender, ResiliencePipelineProvider<string> resiliencePipelineProvider, IWebhookEventDispatcher webhookEventDispatcher)
         {
             _sender = sender;
             _resiliencePipelineProvider = resiliencePipelineProvider;
-            _createValidator = createValidator;
-            _updateValidator = updateValidator;
             _webhookEventDispatcher = webhookEventDispatcher;
         }
 
@@ -35,19 +32,12 @@ namespace UI.Controllers
         [EnableRateLimiting("PostRequestLimiter")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateMenuItemDto createMenuItemDto)
         {
-            var validation = await _createValidator.ValidateAsync(createMenuItemDto);    
-            if (!validation.IsValid)
-            {
-                var problemDetaisl = new HttpValidationProblemDetails(validation.ToDictionary());
-                return BadRequest(problemDetaisl);
-            }
-
             var command = new CreateMenuItemCommand(createMenuItemDto);
             var menuItem = await _sender.Send(command);
 
             await _webhookEventDispatcher.DispatchAsync("MenuItem.created", menuItem);
 
-            return Ok(menuItem);
+            return menuItem.IsSuccess ? Ok(menuItem) : StatusCode((int)menuItem.Error.StatusCode, menuItem);
         }
 
         [HttpGet]
@@ -65,14 +55,12 @@ namespace UI.Controllers
         [EnableRateLimiting("GetRequestLimiter")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
         {
-            var pipeline = _resiliencePipelineProvider.GetPipeline<GetMenuItemDto?>("menu-items-fallback");
+            var pipeline = _resiliencePipelineProvider.GetPipeline<Result<GetMenuItemDto>?>("menu-items-fallback");
 
             var query = new GetMenuItemByIdQuery(id);
-            var menuItem = await pipeline.ExecuteAsync(async token => await _sender.Send(query));
-            if (menuItem == null)
-                return NotFound($"MenuItem with id {id} not found");
+            var result = await pipeline.ExecuteAsync(async token => await _sender.Send(query));
 
-            return Ok(menuItem);
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpPut]
@@ -80,16 +68,10 @@ namespace UI.Controllers
         [EnableRateLimiting("PutRequestLimiter")]
         public async Task<IActionResult> UpdateAsync([FromRoute] int id, [FromBody] UpdateMenuItemDto updateMenuItemDto)
         {
-            var validation = await _updateValidator.ValidateAsync(updateMenuItemDto);
-            if (!validation.IsValid)
-            {
-                var problemDetails = new HttpValidationProblemDetails(validation.ToDictionary());
-                return BadRequest(problemDetails);
-            }
-
             var command = new UpdateMenuItemCommand(id, updateMenuItemDto);
-            var menuItem = await _sender.Send(command);
-            return Ok(menuItem);
+            var result = await _sender.Send(command);
+
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpDelete]
