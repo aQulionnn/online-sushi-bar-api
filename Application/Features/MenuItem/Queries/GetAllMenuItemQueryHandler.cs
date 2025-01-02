@@ -28,7 +28,7 @@ namespace Application.Features.MenuItem.Queries
             var menuItems = await _menuItemService.GetAllAsync(request.Pagination);
             await _redisService.SetDataAsync($"menuItems:page:{request.Pagination.Page}:pageSize:{request.Pagination.PageSize}", menuItems);
 
-            return Result<IEnumerable<GetMenuItemDto>>.Success(cachedMenuItems);
+            return Result<IEnumerable<GetMenuItemDto>>.Success(menuItems);
         }
     }
 

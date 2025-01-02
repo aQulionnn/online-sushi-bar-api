@@ -5,7 +5,6 @@ using DAL.Errors;
 using DAL.SharedKernels;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace Application.Features.MenuItem.Commands
 {

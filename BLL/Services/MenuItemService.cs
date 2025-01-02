@@ -66,7 +66,11 @@ namespace BLL.Services
             {
                 var updatedMenuItem = _mapper.Map<MenuItem>(updateMenuItemDto);
                 updatedMenuItem.Id = id;
-                await _unitOfWork.MenuItemRepository.UpdateAsync(id, updatedMenuItem);
+
+                var menuItem = await _unitOfWork.MenuItemRepository.UpdateAsync(id, updatedMenuItem);
+                if (menuItem == null)
+                    return null;
+                
                 await _unitOfWork.CommitAsync();
 
                 return _mapper.Map<GetMenuItemDto>(updatedMenuItem);
