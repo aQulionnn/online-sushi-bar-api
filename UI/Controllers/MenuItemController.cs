@@ -2,10 +2,8 @@
 using Application.Features.MenuItem.Queries;
 using Application.Interfaces;
 using BLL.Dtos.MenuItem;
-using DAL.Entities;
 using DAL.Parameters;
 using DAL.SharedKernels;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

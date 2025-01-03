@@ -16,3 +16,26 @@ services:
     ports:
     - 5341:5341
     - 8081:80
+  
+  database:
+    image: postgres:latest
+    container_name: online-sushi-bar-api.database
+    environment:
+    - POSTGRES_DB=OnlineSushiBarDb
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=1234
+    ports:
+    - 5432:5432
+    volumes:
+    - "online-sushi-bar-volume:/app"  
+    
+  redis:
+    image: redis:latest
+    container_name: online-sushi-bar-api.redis
+    restart: always
+    ports:
+    - 6379:6379 
+
+volumes:
+  online-sushi-bar-volume:
+    external: true
