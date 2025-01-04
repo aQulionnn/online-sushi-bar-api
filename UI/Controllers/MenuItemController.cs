@@ -36,7 +36,7 @@ namespace UI.Controllers
 
             await _webhookEventDispatcher.DispatchAsync("MenuItem.created", result);
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
+            return StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpGet]
@@ -47,7 +47,7 @@ namespace UI.Controllers
             var query = new GetAllMenuItemQuery(pagination);
             var result = await _sender.Send(query);
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result); ;
+            return StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpGet]
@@ -60,7 +60,7 @@ namespace UI.Controllers
             var query = new GetMenuItemByIdQuery(id);
             var result = await pipeline.ExecuteAsync(async token => await _sender.Send(query));
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
+            return StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpPut]
@@ -73,7 +73,7 @@ namespace UI.Controllers
 
             await _webhookEventDispatcher.DispatchAsync("MenuItem.updated", result);
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
+            return StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpDelete]
@@ -86,7 +86,7 @@ namespace UI.Controllers
 
             await _webhookEventDispatcher.DispatchAsync("MenuItems.deleted", result);
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
+            return StatusCode((int)result.Error.StatusCode, result);
         }
 
         [HttpDelete]
@@ -99,7 +99,7 @@ namespace UI.Controllers
 
             await _webhookEventDispatcher.DispatchAsync("MenuItem.deleted", result);
 
-            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
+            return StatusCode((int)result.Error.StatusCode, result);
         }
     }
 }
