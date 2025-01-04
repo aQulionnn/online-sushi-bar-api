@@ -71,6 +71,8 @@ namespace UI.Controllers
             var command = new UpdateMenuItemCommand(id, updateMenuItemDto);
             var result = await _sender.Send(command);
 
+            await _webhookEventDispatcher.DispatchAsync("MenuItem.updated", result);
+
             return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
@@ -82,6 +84,8 @@ namespace UI.Controllers
             var command = new DeleteAllMenuItemCommand();
             var result = await _sender.Send(command);
 
+            await _webhookEventDispatcher.DispatchAsync("MenuItems.deleted", result);
+
             return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
 
@@ -92,6 +96,8 @@ namespace UI.Controllers
         {
             var command = new DeleteMenuItemByIdCommand(id);
             var result = await _sender.Send(command);
+
+            await _webhookEventDispatcher.DispatchAsync("MenuItem.deleted", result);
 
             return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result);
         }
