@@ -53,6 +53,12 @@ namespace BLL.Services
             return menuItems;
         }
 
+        public async Task<IEnumerable<GetMenuItemDto>> GetAllWithSortingAsync(SortingParameters sorting)
+        {
+            var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllWithSortingAsync(sorting));
+            return menuItems;
+        }
+
         public async Task<GetMenuItemDto> GetByIdAsync(int id)
         {
             var menuItem = _mapper.Map<GetMenuItemDto>(await _unitOfWork.MenuItemRepository.GetByIdAsync(id));

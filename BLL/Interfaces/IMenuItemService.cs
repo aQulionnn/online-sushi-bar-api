@@ -7,6 +7,7 @@ namespace BLL.Interfaces
     {
         Task<GetMenuItemDto> CreateAsync(CreateMenuItemDto createMenuItemDto);
         Task<IEnumerable<GetMenuItemDto>> GetAllAsync(PaginationParameters pagination);
+        Task<IEnumerable<GetMenuItemDto>> GetAllWithSortingAsync(SortingParameters sorting);
         Task<GetMenuItemDto> GetByIdAsync(int id);
         Task<GetMenuItemDto> UpdateAsync(int id, UpdateMenuItemDto updateMenuItemDto);
         Task<IEnumerable<GetMenuItemDto>> DeleteAllAsync();

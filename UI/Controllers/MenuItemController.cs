@@ -8,6 +8,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Polly.Registry;
+using System;
+using System.Threading.Tasks;
 
 namespace UI.Controllers
 {
@@ -45,6 +47,17 @@ namespace UI.Controllers
         public async Task<IActionResult> GetAllAsync([FromQuery] PaginationParameters pagination)
         {
             var query = new GetAllMenuItemQuery(pagination);
+            var result = await _sender.Send(query);
+
+            return StatusCode((int)result.Error.StatusCode, result);
+        }
+
+        [HttpGet]
+        [Route("get/all-with-sorting")]
+        [EnableRateLimiting("GetRequestLimiter")]
+        public async Task<IActionResult> GetAllWithSortingAsync([FromQuery] SortingParameters sorting)
+        {
+            var query = new GetSortedMenuItemsQuery(sorting);
             var result = await _sender.Send(query);
 
             return StatusCode((int)result.Error.StatusCode, result);
