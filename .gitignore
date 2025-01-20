@@ -363,6 +363,3 @@ MigrationBackup/
 .ionide/
 
 # Fody - auto-generated XML schema
-FodyWeavers.xsd
-/UI/appsettings.json
-/UI/appsettings.json
