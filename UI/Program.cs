@@ -13,6 +13,7 @@ using DAL.Parameters;
 using DAL.Repositories;
 using DAL.SharedKernels;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Polly;
@@ -27,13 +28,25 @@ builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configu
 
 builder.Services.AddControllers();
 
-builder.Services.AddScoped<IWebhookEventRepository, WebhookEventRepository>();
-builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<IMenuItemRepository>()
+    .AddClasses(classes => classes
+        .AssignableTo<IWebhookEventRepository>()
+        .AssignableTo<IMenuItemRepository>()
+        .AssignableTo<IUnitOfWork>()
+    )
+    .AsImplementedInterfaces()
+    .WithScopedLifetime());
 
-builder.Services.AddScoped<IWebhookEventService, WebhookEventService>();
-builder.Services.AddScoped<IMenuItemService, MenuItemService>();
-builder.Services.AddScoped<IRedisService, RedisService>();
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<IMenuItemService>()
+    .AddClasses(classes => classes
+        .AssignableTo<IWebhookEventService>()
+        .AssignableTo<IMenuItemService>()
+        .AssignableTo<IRedisService>()
+    )
+    .AsImplementedInterfaces()
+    .WithScopedLifetime());
 
 builder.Services.AddHttpClient<IWebhookEventDispatcher, WebhookEventDispatcher>();
 
