@@ -4,6 +4,7 @@ using BLL.Interfaces;
 using DAL.Entities;
 using DAL.Interfaces;
 using DAL.Parameters;
+using DAL.SharedKernels;
 
 namespace BLL.Services
 {
@@ -57,6 +58,14 @@ namespace BLL.Services
         {
             var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllWithSortingAsync(sorting));
             return menuItems;
+        }
+
+        public async Task<CursorPagedResult<GetMenuItemDto>> GetAllWithCursorPaginationAsync(CursorPaginationParameters cursorPaginationParameters)
+        {
+            var cursorResult = await _unitOfWork.MenuItemRepository.GetAllWithCursorPaginationAsync(cursorPaginationParameters);
+            var menuItemsDto = _mapper.Map<IEnumerable<GetMenuItemDto>>(cursorResult.Items);
+
+            return new CursorPagedResult<GetMenuItemDto>(menuItemsDto, cursorResult.NextLastId, cursorResult.HasMore);
         }
 
         public async Task<GetMenuItemDto> GetByIdAsync(int id)

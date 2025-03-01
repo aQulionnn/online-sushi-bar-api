@@ -2,6 +2,7 @@
 using DAL.Entities;
 using DAL.Interfaces;
 using DAL.Parameters;
+using DAL.SharedKernels;
 using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositories
@@ -31,6 +32,27 @@ namespace DAL.Repositories
                     : await menuItems.OrderByDescending(o => o.Price).ToListAsync();
 
             return await menuItems.ToListAsync();
+        }
+
+        public async Task<CursorPagedResult<MenuItem>> GetAllWithCursorPaginationAsync(CursorPaginationParameters cursorPaginationParameters)
+        {
+            var query = _readContext.MenuItems.AsQueryable();
+            
+            if (cursorPaginationParameters.LastId != null)
+                query = query.Where(x => x.Id < cursorPaginationParameters.LastId);
+
+            var menuItems = await query
+                .OrderByDescending(x => x.Id)
+                .Take(cursorPaginationParameters.Limit)
+                .ToListAsync();
+            
+            bool hasMore = menuItems.Count > cursorPaginationParameters.Limit;
+            int? nextLastId = hasMore ? menuItems[^1].Id : null;
+            
+            if (hasMore)
+                menuItems.RemoveAt(menuItems.Count - 1);
+            
+            return new CursorPagedResult<MenuItem>(menuItems, nextLastId, hasMore);
         }
     }
 }

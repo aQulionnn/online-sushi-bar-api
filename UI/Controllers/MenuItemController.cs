@@ -64,6 +64,17 @@ namespace UI.Controllers
         }
 
         [HttpGet]
+        [Route("get/all-with-cursor")]
+        [EnableRateLimiting("GetRequestLimiter")]
+        public async Task<IActionResult> GetAllWithCursorPaginationAsync([FromQuery] CursorPaginationParameters pagination)
+        {
+            var query = new GetAllWithCursorPaginationQuery(pagination);
+            var result = await _sender.Send(query);
+            
+            return StatusCode((int)result.Error.StatusCode, result);
+        }
+
+        [HttpGet]
         [Route("get/{id:int}")]
         [EnableRateLimiting("GetRequestLimiter")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] int id)
