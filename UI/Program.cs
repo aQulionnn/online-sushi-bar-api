@@ -13,7 +13,9 @@ using DAL.Parameters;
 using DAL.Repositories;
 using DAL.SharedKernels;
 using FluentValidation;
+using HealthChecks.UI.Client;
 using MediatR;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Polly;
@@ -27,6 +29,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddControllers();
+
+builder.Services.AddHealthChecks()
+    .AddRedis(builder.Configuration.GetConnectionString("Redis"))
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database"))
+    .AddDbContextCheck<AppReadDbContext>()
+    .AddDbContextCheck<AppWriteDbContext>();
 
 builder.Services.Scan(scan => scan
     .FromAssemblyOf<IMenuItemRepository>()
@@ -124,6 +132,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapHealthChecks("health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.UseCors();
 
