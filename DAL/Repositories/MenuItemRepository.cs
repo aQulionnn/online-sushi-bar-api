@@ -4,6 +4,7 @@ using DAL.Interfaces;
 using DAL.Parameters;
 using DAL.SharedKernels;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 
 namespace DAL.Repositories
 {
@@ -76,6 +77,28 @@ namespace DAL.Repositories
                         .Matches(EF.Functions.PhraseToTsQuery("english", searchTerm)))
                 .OrderByDescending(m => 
                     EF.Functions.ToTsVector("english", m.Name + " " + m.Description)
+                        .Rank(EF.Functions.PhraseToTsQuery("english", searchTerm)))
+                .ToListAsync();
+            
+            return menuItems;
+        }
+
+        public async Task<IEnumerable<MenuItem>> GetByWeightedSearchTermWithRank(string searchTerm)
+        {
+            var menuItems = await _readContext.MenuItems
+                .Where(m => 
+                    EF.Functions
+                        .ToTsVector("english", m.Name)
+                            .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
+                        .Concat(EF.Functions.ToTsVector("english", m.Description)
+                            .SetWeight(NpgsqlTsVector.Lexeme.Weight.B))
+                        .Matches(EF.Functions.PhraseToTsQuery("english", searchTerm)))
+                .OrderByDescending(m =>
+                    EF.Functions
+                        .ToTsVector("english", m.Name)
+                            .SetWeight(NpgsqlTsVector.Lexeme.Weight.A)
+                        .Concat(EF.Functions.ToTsVector("english", m.Description)
+                            .SetWeight(NpgsqlTsVector.Lexeme.Weight.B))
                         .Rank(EF.Functions.PhraseToTsQuery("english", searchTerm)))
                 .ToListAsync();
             

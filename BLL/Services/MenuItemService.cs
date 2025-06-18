@@ -60,6 +60,12 @@ namespace BLL.Services
             return _mapper.Map<IEnumerable<GetMenuItemDto>>(menuItems);
         }
 
+        public async Task<IEnumerable<GetMenuItemDto>> GetByWeightedSearchTermWithRank(string searchTerm)
+        {
+            var menuItems = await _unitOfWork.MenuItemRepository.GetByWeightedSearchTermWithRank(searchTerm);
+            return _mapper.Map<IEnumerable<GetMenuItemDto>>(menuItems);
+        }
+
         public async Task<IEnumerable<GetMenuItemDto>> GetAllAsync(PaginationParameters pagination)
         {
             var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllAsync(pagination));

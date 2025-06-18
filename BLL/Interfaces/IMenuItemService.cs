@@ -16,5 +16,6 @@ namespace BLL.Interfaces
         Task<GetMenuItemDto> DeleteByIdAsync(int id);
         Task<IEnumerable<GetMenuItemDto>> GetBySearchTerm(string searchTerm);
         Task<IEnumerable<GetMenuItemDto>> GetBySearchTermWithRank(string searchTerm);
+        Task<IEnumerable<GetMenuItemDto>> GetByWeightedSearchTermWithRank(string searchTerm);
     }
 }

@@ -10,5 +10,6 @@ namespace DAL.Interfaces
         Task<CursorPagedResult<MenuItem>> GetAllWithCursorPaginationAsync(CursorPaginationParameters cursorPaginationParameters);
         Task<IEnumerable<MenuItem>> GetBySearchTerm(string searchTerm);
         Task<IEnumerable<MenuItem>> GetBySearchTermWithRank(string searchTerm);
+        Task<IEnumerable<MenuItem>> GetByWeightedSearchTermWithRank(string searchTerm);
     }
 }
