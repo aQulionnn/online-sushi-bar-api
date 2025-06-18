@@ -96,6 +96,16 @@ namespace UI.Controllers
             
             return StatusCode((int)result.Error!.StatusCode, result);
         }
+        
+        [HttpGet]
+        [Route("get/search-with-rank")]
+        public async Task<IActionResult> GetBySearchTermWithRankAsync([FromQuery] string searchTerm)
+        {
+            var query = new GetBySearchTermWithRankQuery(searchTerm);
+            var result = await _sender.Send(query);
+            
+            return StatusCode((int)result.Error!.StatusCode, result);
+        }
 
         [HttpPut]
         [Route("update/{id:int}")]

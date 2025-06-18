@@ -66,5 +66,20 @@ namespace DAL.Repositories
             
             return menuItems;
         }
+
+        public async Task<IEnumerable<MenuItem>> GetBySearchTermWithRank(string searchTerm)
+        {
+            var menuItems = await _readContext.MenuItems
+                .Where(m => 
+                    EF.Functions
+                        .ToTsVector("english", m.Name + " " + m.Description)
+                        .Matches(EF.Functions.PhraseToTsQuery("english", searchTerm)))
+                .OrderByDescending(m => 
+                    EF.Functions.ToTsVector("english", m.Name + " " + m.Description)
+                        .Rank(EF.Functions.PhraseToTsQuery("english", searchTerm)))
+                .ToListAsync();
+            
+            return menuItems;
+        }
     }
 }
