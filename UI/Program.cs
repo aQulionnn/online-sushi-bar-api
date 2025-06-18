@@ -127,6 +127,8 @@ builder.Services.AddSwaggerGen(option =>
 
 var app = builder.Build();
 
+await ApplyDatabaseMigration(app);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -151,3 +153,20 @@ app.UseRateLimiter();
 app.MapControllers();
 
 app.Run();
+
+static async Task ApplyDatabaseMigration(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppWriteDbContext>();
+
+    await db.Database.ExecuteSqlRawAsync(
+        """
+        CREATE UNLOGGED TABLE IF NOT EXISTS cache (
+            id SERIAL PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL,
+            value JSONB,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+               
+        CREATE INDEX IF NOT EXISTS idx_cache_key ON cache (key);
+        """);
+}
