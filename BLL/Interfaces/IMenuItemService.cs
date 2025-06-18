@@ -14,5 +14,6 @@ namespace BLL.Interfaces
         Task<GetMenuItemDto> UpdateAsync(int id, UpdateMenuItemDto updateMenuItemDto);
         Task<IEnumerable<GetMenuItemDto>> DeleteAllAsync();
         Task<GetMenuItemDto> DeleteByIdAsync(int id);
+        Task<IEnumerable<GetMenuItemDto>> GetBySearchTerm(string searchTerm);
     }
 }

@@ -16,5 +16,18 @@ namespace DAL.Data
         public async Task BeginTransaction () => await Database.BeginTransactionAsync();
         public async Task CommitTransaction () => await Database.CommitTransactionAsync();
         public async Task RollbackTransaction () => await Database.RollbackTransactionAsync();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<MenuItem>()
+                .HasIndex(menuItem => new
+                {
+                    menuItem.Name,
+                    menuItem.Description
+                })
+                .HasMethod("GIN")
+                .IsTsVectorExpressionIndex("english");
+        }
     }
 }

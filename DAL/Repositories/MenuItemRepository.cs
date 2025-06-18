@@ -54,5 +54,17 @@ namespace DAL.Repositories
             
             return new CursorPagedResult<MenuItem>(menuItems, nextLastId, hasMore);
         }
+
+        public async Task<IEnumerable<MenuItem>> GetBySearchTerm(string searchTerm)
+        {
+            var menuItems = await _readContext.MenuItems
+                .Where(m => 
+                    EF.Functions
+                        .ToTsVector("english", m.Name + " " + m.Description)
+                        .Matches(EF.Functions.PhraseToTsQuery("english", searchTerm)))
+                .ToListAsync();
+            
+            return menuItems;
+        }
     }
 }

@@ -86,6 +86,16 @@ namespace UI.Controllers
 
             return StatusCode((int)result.Error.StatusCode, result);
         }
+        
+        [HttpGet]
+        [Route("get/search")]
+        public async Task<IActionResult> GetBySearchTermAsync([FromQuery] string searchTerm)
+        {
+            var query = new GetBySearchTermQuery(searchTerm);
+            var result = await _sender.Send(query);
+            
+            return StatusCode((int)result.Error!.StatusCode, result);
+        }
 
         [HttpPut]
         [Route("update/{id:int}")]

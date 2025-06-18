@@ -48,6 +48,12 @@ namespace BLL.Services
             return deletedMenuItem;
         }
 
+        public async Task<IEnumerable<GetMenuItemDto>> GetBySearchTerm(string searchTerm)
+        {
+            var menuItems = await _unitOfWork.MenuItemRepository.GetBySearchTerm(searchTerm);
+            return _mapper.Map<IEnumerable<GetMenuItemDto>>(menuItems);
+        }
+
         public async Task<IEnumerable<GetMenuItemDto>> GetAllAsync(PaginationParameters pagination)
         {
             var menuItems = _mapper.Map<IEnumerable<GetMenuItemDto>>(await _unitOfWork.MenuItemRepository.GetAllAsync(pagination));
