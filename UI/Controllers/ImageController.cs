@@ -1,6 +1,8 @@
-﻿using Application.Interfaces;
+﻿using Application.Delegates;
+using Application.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using DAL.Enums;
 using DAL.Parameters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,10 +14,11 @@ namespace UI.Controllers
     public class ImageController : ControllerBase
     {
         private readonly Cloudinary _cloudinary;
-        private readonly IRedisService _redisService;
+        private readonly CacheServiceResolver  _cacheServiceResolver;
 
-        public ImageController(IOptions<CloudStorageParameters> config, IRedisService redisService)
+        public ImageController(IOptions<CloudStorageParameters> config, CacheServiceResolver cacheServiceResolver)
         {
+            _cacheServiceResolver = cacheServiceResolver;
             var account = new Account
             (
                 config.Value.CloudName,
@@ -23,7 +26,6 @@ namespace UI.Controllers
                 config.Value.ApiSecret
             );
             _cloudinary = new Cloudinary(account);
-            _redisService = redisService;
         }
 
         [HttpPost]
@@ -56,7 +58,9 @@ namespace UI.Controllers
         [Route("get/{publicId}")]
         public async Task<IActionResult> GetAsync([FromRoute] string publicId)
         {
-            var cachedImage = await _redisService.GetDataAsync<byte[]>($"image:{publicId}");
+            var redisCacheService = _cacheServiceResolver(CachingType.Redis);
+            
+            var cachedImage = await redisCacheService.GetDataAsync<byte[]>($"image:{publicId}");
             if (cachedImage != null)
                 return File(cachedImage, "image/jpeg");
 
@@ -68,7 +72,7 @@ namespace UI.Controllers
             using var httpClient = new HttpClient();
             var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
 
-            await _redisService.SetDataAsync($"image:{publicId}", imageBytes);
+            await redisCacheService.SetDataAsync($"image:{publicId}", imageBytes);
             Response.Headers["Cache-Control"] = "public, max-age=3060";
             Response.Headers["ETag"] = $"\"{publicId}\"";
 

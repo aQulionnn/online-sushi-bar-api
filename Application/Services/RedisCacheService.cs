@@ -4,10 +4,10 @@ using System.Text.Json;
 
 namespace Application.Services
 {
-    public class RedisService : IRedisService
+    public class RedisCacheService : ICacheService
     {
         private readonly IDistributedCache _cache;
-        public RedisService(IDistributedCache cache)
+        public RedisCacheService(IDistributedCache cache)
         {
             _cache = cache;
         }

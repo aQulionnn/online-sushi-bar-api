@@ -1,10 +1,8 @@
-using DAL.Entities;
-
 namespace Application.Interfaces;
 
-public interface IPostgresCacheService
+public interface ICacheService
 {
-    Task SetData(CacheItem cacheItem);
     Task<T> GetDataAsync<T>(string key);
+    Task SetDataAsync<T>(string key, T data);
     Task DeleteDataAsync(string key);
 }

@@ -1,6 +1,8 @@
-﻿using Application.Interfaces;
+﻿using Application.Delegates;
+using Application.Interfaces;
 using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
+using DAL.Enums;
 using DAL.Errors;
 using DAL.SharedKernels;
 using MediatR;
@@ -10,21 +12,22 @@ namespace Application.Features.MenuItem.Commands
     public class DeleteMenuItemByIdCommandHandler : IRequestHandler<DeleteMenuItemByIdCommand, Result<GetMenuItemDto>>
     {
         private readonly IMenuItemService _menuItemService;
-        private readonly IRedisService _redisService;
-
-        public DeleteMenuItemByIdCommandHandler(IMenuItemService menuItemService, IRedisService redisService)
+        private readonly CacheServiceResolver  _cacheServiceResolver;
+        public DeleteMenuItemByIdCommandHandler(IMenuItemService menuItemService, CacheServiceResolver cacheServiceResolver)
         {
             _menuItemService = menuItemService;
-            _redisService = redisService;
+            _cacheServiceResolver = cacheServiceResolver;
         }
 
         public async Task<Result<GetMenuItemDto>> Handle(DeleteMenuItemByIdCommand request, CancellationToken cancellationToken)
         {
+            var redisCacheService = _cacheServiceResolver(CachingType.Redis);
+            
             var menuItem = await _menuItemService.DeleteByIdAsync(request.id);
             if (menuItem == null) 
                 return Result<GetMenuItemDto>.Failure(MenuItemErrors.NotFound);
 
-            await _redisService.DeleteDataAsync($"menuItem:{request.id}");
+            await redisCacheService.DeleteDataAsync($"menuItem:{request.id}");
 
             return Result<GetMenuItemDto>.Success(menuItem);
         }

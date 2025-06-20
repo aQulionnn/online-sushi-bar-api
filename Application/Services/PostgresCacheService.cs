@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
-public class PostgresCacheService(AppWriteDbContext writeDbContext) : IPostgresCacheService
+public class PostgresCacheService(AppWriteDbContext writeDbContext) : ICacheService
 {
     private readonly AppWriteDbContext _writeDbContext = writeDbContext;
     
-    public async Task SetData(CacheItem cacheItem)
+    public async Task SetDataAsync<T>(string key, T data)
     {
         await _writeDbContext.Database.ExecuteSqlRawAsync(
             """
@@ -19,7 +19,7 @@ public class PostgresCacheService(AppWriteDbContext writeDbContext) : IPostgresC
             ON CONFLICT(key) DO UPDATE
             SET value = excluded.value;
             """,
-            new { Key = cacheItem.Key, Value = cacheItem.Value.ToString() });
+            new { Key = key, Value = data.ToString() });
     }
 
     public async Task<T> GetDataAsync<T>(string key)

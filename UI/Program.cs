@@ -1,3 +1,4 @@
+using Application.Delegates;
 using Application.Features.Behaviors;
 using Application.Features.MenuItem.Commands;
 using Application.Interfaces;
@@ -8,6 +9,7 @@ using BLL.Interfaces;
 using BLL.Services;
 using DAL.Data;
 using DAL.Entities;
+using DAL.Enums;
 using DAL.Interfaces;
 using DAL.Parameters;
 using DAL.Repositories;
@@ -30,6 +32,22 @@ builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configu
 
 builder.Services.AddControllers();
 
+builder.Services.AddTransient<PostgresCacheService>();
+builder.Services.AddTransient<RedisCacheService>();
+
+builder.Services.AddScoped<CacheServiceResolver>(serviceProvider => key =>
+{
+    switch (key)
+    {
+        case CachingType.Postgres:
+            return serviceProvider.GetRequiredService<PostgresCacheService>();
+        case CachingType.Redis:
+            return serviceProvider.GetRequiredService<RedisCacheService>();
+        default:
+            throw new KeyNotFoundException();
+    }
+});
+
 builder.Services.AddHealthChecks()
     .AddRedis(builder.Configuration.GetConnectionString("Redis"))
     .AddNpgSql(builder.Configuration.GetConnectionString("Database"))
@@ -51,7 +69,6 @@ builder.Services.Scan(scan => scan
     .AddClasses(classes => classes
         .AssignableTo<IWebhookEventService>()
         .AssignableTo<IMenuItemService>()
-        .AssignableTo<IRedisService>()
     )
     .AsImplementedInterfaces()
     .WithScopedLifetime());

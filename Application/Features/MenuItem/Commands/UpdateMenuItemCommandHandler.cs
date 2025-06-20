@@ -1,6 +1,8 @@
-﻿using Application.Interfaces;
+﻿using Application.Delegates;
+using Application.Interfaces;
 using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
+using DAL.Enums;
 using DAL.Errors;
 using DAL.SharedKernels;
 using FluentValidation;
@@ -11,23 +13,25 @@ namespace Application.Features.MenuItem.Commands
     public class UpdateMenuItemCommandHandler : IRequestHandler<UpdateMenuItemCommand, Result<GetMenuItemDto>>
     {
         private readonly IMenuItemService _menuItemService;
-        private readonly IRedisService _redisService;
+        private readonly CacheServiceResolver  _cacheServiceResolver;
         private readonly IValidator<UpdateMenuItemDto> _validator;
 
         public UpdateMenuItemCommandHandler
             (
                 IMenuItemService menuItemService, 
-                IRedisService redisService, 
-                IValidator<UpdateMenuItemDto> validator
-            )
+                 
+                IValidator<UpdateMenuItemDto> validator, CacheServiceResolver cacheServiceResolver)
         {
             _menuItemService = menuItemService;
-            _redisService = redisService;
+            
             _validator = validator;
+            _cacheServiceResolver = cacheServiceResolver;
         }
 
         public async Task<Result<GetMenuItemDto>> Handle(UpdateMenuItemCommand request, CancellationToken cancellationToken)
         {
+            var redisCacheService = _cacheServiceResolver(CachingType.Redis);
+            
             var updatedMenuItem = await _menuItemService.UpdateAsync(request.id, request.UpdateMenuItemDto);
             if (updatedMenuItem == null) 
                 return Result<GetMenuItemDto>.Failure(MenuItemErrors.NotFound);
@@ -39,8 +43,8 @@ namespace Application.Features.MenuItem.Commands
                 return Result<GetMenuItemDto>.Failure(MenuItemErrors.ValidationError(problemDetails));
             }
 
-            await _redisService.DeleteDataAsync($"menuItem:{request.id}");        
-            await _redisService.SetDataAsync($"menuItem:{request.id}", updatedMenuItem);
+            await redisCacheService.DeleteDataAsync($"menuItem:{request.id}");        
+            await redisCacheService.SetDataAsync($"menuItem:{request.id}", updatedMenuItem);
             
             return Result<GetMenuItemDto>.Success(updatedMenuItem);    
         }

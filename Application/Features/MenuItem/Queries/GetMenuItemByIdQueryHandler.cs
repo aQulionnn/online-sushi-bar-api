@@ -1,6 +1,8 @@
-﻿using Application.Interfaces;
+﻿using Application.Delegates;
+using Application.Interfaces;
 using BLL.Dtos.MenuItem;
 using BLL.Interfaces;
+using DAL.Enums;
 using DAL.Errors;
 using DAL.SharedKernels;
 using MediatR;
@@ -10,16 +12,18 @@ namespace Application.Features.MenuItem.Queries
     public class GetMenuItemByIdQueryHandler : IRequestHandler<GetMenuItemByIdQuery, Result<GetMenuItemDto>>
     {
         private readonly IMenuItemService _menuItemService;
-        private readonly IRedisService _redisService;
-        public GetMenuItemByIdQueryHandler(IMenuItemService menuItemService, IRedisService redisService)
+        private readonly CacheServiceResolver  _cacheServiceResolver;
+        public GetMenuItemByIdQueryHandler(IMenuItemService menuItemService, CacheServiceResolver cacheServiceResolver)
         {
             _menuItemService = menuItemService;
-            _redisService = redisService;
+            _cacheServiceResolver = cacheServiceResolver;
         }
 
         public async Task<Result<GetMenuItemDto>> Handle(GetMenuItemByIdQuery request, CancellationToken cancellationToken)
         {
-            var cachedMenuItem = await _redisService.GetDataAsync<GetMenuItemDto>($"menuItem:{request.id}");
+            var redisCacheService = _cacheServiceResolver(CachingType.Redis);
+            
+            var cachedMenuItem = await redisCacheService.GetDataAsync<GetMenuItemDto>($"menuItem:{request.id}");
             if (cachedMenuItem != null)
                 return Result<GetMenuItemDto>.Success(cachedMenuItem);
 
@@ -27,7 +31,7 @@ namespace Application.Features.MenuItem.Queries
             if (menuItem == null) 
                 return Result<GetMenuItemDto>.Failure(MenuItemErrors.NotFound);
 
-            await _redisService.SetDataAsync($"menuItem:{request.id}", menuItem);
+            await redisCacheService.SetDataAsync($"menuItem:{request.id}", menuItem);
 
             return Result<GetMenuItemDto>.Success(menuItem);
         }
